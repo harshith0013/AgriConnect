@@ -1,3 +1,4 @@
+import 'dotenv/config'
 import cors from 'cors'
 import express, { NextFunction, Request, Response } from 'express'
 import bcrypt from 'bcryptjs'
@@ -207,13 +208,16 @@ app.post('/api/crop-diagnoses', auth, role('FARMER'), upload.single('image'), as
   const imagePath = path.join(privateUploadDir, imageKey)
   await mkdir(path.dirname(imagePath), { recursive: true })
   await writeFile(imagePath, request.file.buffer)
-  const result = await inferenceProvider.analyze({ cropName, imagePath })
-  const diagnosis = await prisma.cropDiagnosis.create({ data: { farmerId: request.user!.id, cropName, imageKey, imageMimeType: request.file.mimetype, imageSize: request.file.size, ...result } })
-  response.status(201).json({ diagnosis: { id: diagnosis.id, cropName: diagnosis.cropName, prediction: diagnosis.prediction, confidence: diagnosis.confidence, resultStatus: diagnosis.resultStatus, guidanceKey: diagnosis.guidanceKey, modelName: diagnosis.modelName, modelVersion: diagnosis.modelVersion, provider: diagnosis.provider, createdAt: diagnosis.createdAt }, demo: true })
+  const result = await inferenceProvider.analyze({ crop: cropName, imageBuffer: request.file.buffer, mimeType: request.file.mimetype, language: String(request.body.language || 'en'), symptomDescription: request.body.symptomDescription?.trim() || undefined })
+  const diagnosis = await prisma.cropDiagnosis.create({ data: { farmerId: request.user!.id, cropName, imageKey, imageMimeType: request.file.mimetype, imageSize: request.file.size, prediction: result.prediction, confidence: result.confidence, resultStatus: result.status, guidanceKey: null, modelName: result.modelName, modelVersion: result.modelVersion, provider: result.provider } })
+  response.status(201).json({ diagnosis: { id: diagnosis.id, cropName: diagnosis.cropName, prediction: diagnosis.prediction, confidence: diagnosis.confidence, resultStatus: diagnosis.resultStatus, guidanceKey: diagnosis.guidanceKey, modelName: diagnosis.modelName, modelVersion: diagnosis.modelVersion, provider: diagnosis.provider, createdAt: diagnosis.createdAt }, analysis: result, demo: false })
 }))
 
-app.get('/api/crop-diagnoses/mine', auth, role('FARMER'), asyncRoute(async (request, response) => { const diagnoses = await prisma.cropDiagnosis.findMany({ where: { farmerId: request.user!.id }, select: { id: true, cropName: true, prediction: true, confidence: true, resultStatus: true, guidanceKey: true, modelName: true, modelVersion: true, provider: true, createdAt: true }, orderBy: { createdAt: 'desc' } }); response.json({ diagnoses, demo: true }) }))
+app.get('/api/crop-diagnoses/mine', auth, role('FARMER'), asyncRoute(async (request, response) => { const diagnoses = await prisma.cropDiagnosis.findMany({ where: { farmerId: request.user!.id }, select: { id: true, cropName: true, prediction: true, confidence: true, resultStatus: true, guidanceKey: true, modelName: true, modelVersion: true, provider: true, createdAt: true }, orderBy: { createdAt: 'desc' } }); response.json({ diagnoses, demo: false }) }))
+
+app.use(express.static(path.resolve('dist')))
+app.use((request, response, next) => { if (request.method !== 'GET' || request.path.startsWith('/api/')) return next(); response.sendFile(path.resolve('dist/index.html')) })
 
 app.use((error: Error, _request: Request, response: Response, _next: NextFunction) => { if (error.message.includes('Unique constraint')) return response.status(409).json({ error: 'An account with these details already exists' }); response.status(400).json({ error: error.message || 'Request failed' }) })
 
-app.listen(port, () => console.log(`AgriConnect API listening on http://localhost:${port}`))
+app.listen(port, '0.0.0.0', () => console.log(`AgriConnect API listening on port ${port}`))

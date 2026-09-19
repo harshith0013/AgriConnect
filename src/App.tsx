@@ -50,7 +50,7 @@ export default function App() {
     {page === 'transport' && session?.user.role === 'FARMER' && <LogisticsHub t={t} token={session.token} mode="transport" go={go} />}
     {page === 'transport-request' && session?.user.role === 'FARMER' && <TransportRequestForm t={t} token={session.token} go={go} />}
     {page === 'transport-requests' && session?.user.role === 'FARMER' && <RequestHistory t={t} token={session.token} mode="transport" go={go} />}
-    {page === 'crop-assistance' && session?.user.role === 'FARMER' && <CropAssistance t={t} token={session.token} go={go} />}
+    {page === 'crop-assistance' && session?.user.role === 'FARMER' && <CropAssistance t={t} token={session.token} language={language} go={go} />}
     <footer>{t('footer')}</footer>
   </div>
 }

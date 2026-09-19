@@ -1,4 +1,4 @@
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000/api'
+const API_URL = import.meta.env.VITE_API_URL || '/api'
 
 export type Role = 'FARMER' | 'BUYER'
 export type Session = { token: string; user: { id: string; role: Role; name: string; mobile: string; email?: string | null; language: string } }
@@ -38,7 +38,7 @@ export const api = {
   transportRequest: (data: Record<string, unknown>, token: string) => request<{ request: TransportRequest }>('/transport-requests', { method: 'POST', body: JSON.stringify(data) }, token),
   myTransportRequests: (token: string) => request<{ requests: TransportRequest[] }>('/transport-requests/mine', {}, token),
   cancelTransportRequest: (id: string, token: string) => request<{ request: TransportRequest }>(`/transport-requests/${id}/cancel`, { method: 'PATCH' }, token),
-  submitDiagnosis: async (cropName: string, image: File, token: string) => { const body = new FormData(); body.append('cropName', cropName); body.append('image', image); const response = await fetch(`${API_URL}/crop-diagnoses`, { method: 'POST', body, headers: { Authorization: `Bearer ${token}` } }); if (!response.ok) { const data = await response.json().catch(() => ({})); throw new Error(data.error || 'Diagnosis request failed') } return response.json() as Promise<{ diagnosis: Diagnosis; demo: boolean }> },
+  submitDiagnosis: async (cropName: string, image: File, token: string, language: string) => { const body = new FormData(); body.append('cropName', cropName); body.append('language', language); body.append('image', image); const response = await fetch(`${API_URL}/crop-diagnoses`, { method: 'POST', body, headers: { Authorization: `Bearer ${token}` } }); if (!response.ok) { const data = await response.json().catch(() => ({})); throw new Error(data.error || 'Diagnosis request failed') } return response.json() as Promise<{ diagnosis: Diagnosis; analysis: { explanation: string; observedSymptoms: string[]; recommendedNextSteps: string[]; whenToSeekExpertHelp: string; language: string }; demo: boolean }> },
   diagnosisHistory: (token: string) => request<{ diagnoses: Diagnosis[]; demo: boolean }>('/crop-diagnoses/mine', {}, token),
 }
 export type Listing = { id: string; cropName: string; category: string; quantity: number; unit: string; quality?: string | null; expectedPrice: number; availabilityDate: string; pickupLocation: string; description?: string | null; status: string; farmer?: { name: string; farmerProfile?: { state: string; district: string; village: string } } }
@@ -51,4 +51,4 @@ export type TransportProvider = { id: string; name: string; contact?: string | n
 export type StorageRequest = { id: string; cropName: string; quantity: number; unit: string; startDate: string; endDate: string; notes?: string | null; status: string; facility: ColdStorageFacility }
 export type TransportRequest = { id: string; cropName: string; quantity: number; unit: string; pickupLocation: string; destination: string; pickupDate: string; vehicleRequirements?: string | null; notes?: string | null; status: string; provider?: TransportProvider | null }
 export type LogisticsResponse<T> = { facilities?: T[]; providers?: T[]; dataStatus: string; source: string; retrievedAt: string }
-export type Diagnosis = { id: string; cropName: string; prediction?: string | null; confidence?: number | null; resultStatus: string; guidanceKey?: string | null; modelName: string; modelVersion: string; provider: string; createdAt: string }
+export type Diagnosis = { id: string; cropName: string; prediction?: string | null; confidence?: number | null; resultStatus: string; guidanceKey?: string | null; modelName: string; modelVersion: string; provider: string; createdAt: string; analysis?: { explanation: string; observedSymptoms: string[]; recommendedNextSteps: string[]; whenToSeekExpertHelp: string; language: string } }

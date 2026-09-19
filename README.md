@@ -35,6 +35,25 @@ npm run dev
 
 The frontend runs at the Vite URL, normally `http://localhost:5173`. The API runs at `http://localhost:4000`.
 
+## Deploy to Render
+
+This repository includes `render.yaml` for a single Render web service. The service builds the React frontend, serves it from Express, runs Prisma migrations at startup, and exposes the API under `/api`.
+
+1. Push the repository to GitHub and create a Render Blueprint from the repository.
+2. Review the service in `render.yaml` and deploy it. The Blueprint uses a Starter instance because SQLite and private crop uploads require a persistent disk; the free instance filesystem is ephemeral.
+3. Set `GEMINI_API_KEY` as a Render secret environment variable. Never put the key in `render.yaml`, `.env.example`, or frontend variables.
+4. Set `CLIENT_ORIGIN` to the final Render URL if the service name or URL changes from `https://agric-connect.onrender.com`.
+5. Open the Render URL. The frontend and API are served by the same service, so no `VITE_API_URL` value is required.
+
+Render deployment commands:
+
+```text
+Build:  npm ci && npx prisma generate && npm run build:api && npm run build
+Start:  npm start
+```
+
+The Render service uses `DATABASE_URL=file:/var/data/agriconnect.db` and stores private crop uploads under `/var/data/private-uploads`. Do not deploy the local `dev.db` or `.env` files.
+
 Useful checks:
 
 ```bash
