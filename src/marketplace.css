@@ -1,0 +1,31 @@
+.role-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; max-width: 650px; }
+.role-card { background: #fff; border: 1px solid #dfe8d9; padding: 20px; box-shadow: 0 10px 25px #3752390b; }
+.role-card h2 { font-family: 'DM Sans', sans-serif; font-size: 18px; letter-spacing: 0; margin: 0 0 8px; }
+.role-card p { min-height: 42px; color: #718071; font-size: 13px; line-height: 1.5; }
+.small-button { min-height: 39px; padding: 0 13px; font-size: 12px; }
+.role-card .text-button { display: block; font-size: 12px; margin-top: 8px; }
+.auth-tabs { display: flex; gap: 4px; border-bottom: 1px solid #e0e8d9; margin: -5px 0 26px; }
+.auth-tabs button { border: 0; background: transparent; color: #7d8c80; padding: 10px 8px; font-size: 12px; }
+.auth-tabs button.active { color: #285d43; border-bottom: 2px solid #285d43; font-weight: 700; }
+.market-nav { display: flex; flex-wrap: wrap; gap: 18px; margin: 0 0 27px; border-bottom: 1px solid #dce5d7; padding-bottom: 12px; }
+.market-nav button { border: 0; background: transparent; color: #718071; padding: 7px 2px; font-size: 13px; }
+.market-nav button:hover { color: #285d43; }
+.listing-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 15px; }
+.listing-card, .offer-card { background: #fff; border: 1px solid #e0e8d9; padding: 20px; position: relative; }
+.listing-card { min-height: 220px; }
+.listing-icon { color: #5b8553; margin-bottom: 17px; }
+.listing-card h2 { font-family: 'DM Sans', sans-serif; font-size: 19px; letter-spacing: 0; margin: 12px 0 8px; }
+.listing-card p { color: #718071; font-size: 12px; margin: 6px 0; }
+.status { display: inline-block; color: #52734e; background: #eaf2df; padding: 4px 7px; font-size: 10px; font-weight: 700; text-transform: uppercase; }
+.listing-card .text-button { padding-left: 0; margin-top: 12px; font-size: 12px; }
+.delete-button { position: absolute; right: 15px; bottom: 22px; border: 0; background: transparent; color: #a65d4c; font-size: 11px; }
+.search-row { display: flex; gap: 10px; margin: 0 0 25px; }
+.search-row input { flex: 1; min-height: 48px; border: 1px solid #d5ded1; background: #fff; padding: 0 14px; outline-color: #6e9b63; }
+.offer-list { display: grid; gap: 12px; max-width: 720px; }
+.offer-card { display: grid; gap: 8px; }
+.offer-card span, .offer-card small { color: #718071; font-size: 13px; }
+.offer-card .status { width: fit-content; }
+.empty-state { border: 1px dashed #bfcfba; text-align: center; padding: 60px 25px; color: #668067; background: #f8faf4; }
+.empty-state h2 { font-family: 'DM Sans', sans-serif; font-size: 20px; letter-spacing: 0; margin: 16px 0 8px; }
+.empty-state p { color: #87968a; font-size: 13px; }
+@media (max-width: 760px) { .role-grid { grid-template-columns: 1fr; }.listing-grid { grid-template-columns: 1fr; }.search-row { display: grid; grid-template-columns: 1fr; }.dashboard-heading .primary-button { margin-top: 18px; } }

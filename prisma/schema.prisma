@@ -1,0 +1,107 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id            String         @id @default(cuid())
+  role          String
+  name          String
+  mobile        String         @unique
+  email         String?        @unique
+  passwordHash  String
+  language      String         @default("en")
+  farmerProfile FarmerProfile?
+  buyerProfile  BuyerProfile?
+  listings      ProduceListing[]
+  offers        Offer[]
+  farmerOrders  Order[]        @relation("farmerOrders")
+  buyerOrders   Order[]        @relation("buyerOrders")
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+}
+
+model FarmerProfile {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  state     String
+  district  String
+  village   String
+  farmSize  Float
+  crops     String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model BuyerProfile {
+  id           String   @id @default(cuid())
+  userId       String   @unique
+  businessName String
+  buyerType    String
+  state        String
+  district     String
+  location     String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model ProduceListing {
+  id               String   @id @default(cuid())
+  farmerId         String
+  cropName         String
+  category         String
+  quantity         Float
+  unit             String
+  quality          String?
+  expectedPrice    Float
+  availabilityDate DateTime
+  pickupLocation   String
+  description      String?
+  imageUrl         String?
+  status           String   @default("AVAILABLE")
+  farmer           User     @relation(fields: [farmerId], references: [id], onDelete: Cascade)
+  offers           Offer[]
+  orders           Order[]
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  @@index([status, cropName])
+  @@index([farmerId])
+}
+
+model Offer {
+  id              String          @id @default(cuid())
+  listingId       String
+  buyerId         String
+  offeredPrice    Float
+  requestedQuantity Float
+  message         String?
+  status          String          @default("PENDING")
+  listing         ProduceListing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  buyer           User            @relation(fields: [buyerId], references: [id], onDelete: Cascade)
+  order           Order?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  @@index([buyerId, status])
+  @@index([listingId, status])
+}
+
+model Order {
+  id           String         @id @default(cuid())
+  offerId      String         @unique
+  listingId    String
+  farmerId     String
+  buyerId      String
+  agreedPrice  Float
+  quantity     Float
+  status       String         @default("CONFIRMED")
+  offer        Offer          @relation(fields: [offerId], references: [id], onDelete: Restrict)
+  listing      ProduceListing @relation(fields: [listingId], references: [id], onDelete: Restrict)
+  farmer       User           @relation("farmerOrders", fields: [farmerId], references: [id], onDelete: Restrict)
+  buyer        User           @relation("buyerOrders", fields: [buyerId], references: [id], onDelete: Restrict)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  @@index([farmerId, status])
+  @@index([buyerId, status])
+}
