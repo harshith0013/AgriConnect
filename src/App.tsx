@@ -1,15 +1,21 @@
 import { useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
-import { ArrowLeft, ArrowRight, Check, CloudOff, LogOut, Package, Plus, Search, Sprout, Users } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Check, CloudOff, ImagePlus, LogOut, Package, Plus, Search, Sprout, Truck, Users } from 'lucide-react'
 import { api } from './api'
 import type { Listing, Offer, Order, Role, Session } from './api'
 import { translations } from './i18n'
 import { phase2Text } from './phase2Translations'
+import { phase3Text } from './phase3Translations'
+import { MarketPrices } from './marketPrices'
+import { LogisticsHub, RequestHistory, StorageRequestForm, TransportRequestForm } from './logistics'
+import { phase4Text } from './phase4Translations'
+import { phase5Text } from './phase5Translations'
+import { CropAssistance } from './cropAssistance'
 import type { Language } from './i18n'
 import './App.css'
 import './marketplace.css'
 
-type Page = 'home' | 'auth' | 'farmer' | 'buyer' | 'listing' | 'browse' | 'offer' | 'offers' | 'orders'
+type Page = 'home' | 'auth' | 'farmer' | 'buyer' | 'listing' | 'browse' | 'offer' | 'offers' | 'orders' | 'market-prices' | 'storage' | 'storage-request' | 'storage-requests' | 'transport' | 'transport-request' | 'transport-requests' | 'crop-assistance'
 type AuthMode = 'register' | 'login'
 const sessionFromStorage = () => { try { return JSON.parse(localStorage.getItem('agriconnect-session') || 'null') as Session | null } catch { return null } }
 
@@ -20,7 +26,7 @@ export default function App() {
   const [role, setRole] = useState<Role>('FARMER')
   const [authMode, setAuthMode] = useState<AuthMode>('register')
   const [selectedListing, setSelectedListing] = useState<Listing | null>(null)
-  const copy = { ...translations[language], ...phase2Text[language] } as Record<string, string>
+  const copy = { ...translations[language], ...phase2Text[language], ...phase3Text[language], ...phase4Text[language], ...phase5Text[language] } as Record<string, string>
   const t = (key: string) => copy[key] || key
   const go = (next: Page) => { setPage(next); scrollTo({ top: 0, behavior: 'smooth' }) }
   const signOut = () => { localStorage.removeItem('agriconnect-session'); setSession(null); go('home') }
@@ -37,6 +43,14 @@ export default function App() {
     {page === 'offer' && session && selectedListing && <OfferForm t={t} token={session.token} listing={selectedListing} go={go} />}
     {page === 'offers' && session && <Offers t={t} token={session.token} go={go} />}
     {page === 'orders' && session && <Orders t={t} token={session.token} go={go} />}
+    {page === 'market-prices' && session?.user.role === 'FARMER' && <MarketPrices t={t} token={session.token} go={go} />}
+    {page === 'storage' && session?.user.role === 'FARMER' && <LogisticsHub t={t} token={session.token} mode="storage" go={go} />}
+    {page === 'storage-request' && session?.user.role === 'FARMER' && <StorageRequestForm t={t} token={session.token} go={go} />}
+    {page === 'storage-requests' && session?.user.role === 'FARMER' && <RequestHistory t={t} token={session.token} mode="storage" go={go} />}
+    {page === 'transport' && session?.user.role === 'FARMER' && <LogisticsHub t={t} token={session.token} mode="transport" go={go} />}
+    {page === 'transport-request' && session?.user.role === 'FARMER' && <TransportRequestForm t={t} token={session.token} go={go} />}
+    {page === 'transport-requests' && session?.user.role === 'FARMER' && <RequestHistory t={t} token={session.token} mode="transport" go={go} />}
+    {page === 'crop-assistance' && session?.user.role === 'FARMER' && <CropAssistance t={t} token={session.token} go={go} />}
     <footer>{t('footer')}</footer>
   </div>
 }
@@ -52,7 +66,7 @@ function Auth({ t, role, mode, setMode, language, go, success }: { t: (key: stri
   return <main className="form-page"><div className="form-intro"><button className="back-button" onClick={() => go('home')}><ArrowLeft size={14} /> {t('back')}</button><p className="eyebrow">{role === 'FARMER' ? t('farmerAccount') : t('buyerAccount')}</p><h1>{register ? (role === 'FARMER' ? t('registerFarmer') : t('buyerRegister')) : (role === 'FARMER' ? t('loginFarmer') : t('loginBuyer'))}</h1><p>{register ? (role === 'BUYER' ? t('buyerHelp') : t('registerHelp')) : t('loginHelp')}</p></div><form className="form-card" onSubmit={submit}><div className="auth-tabs"><button type="button" className={register ? 'active' : ''} onClick={() => setMode('register')}>{t('register')}</button><button type="button" className={!register ? 'active' : ''} onClick={() => setMode('login')}>{t('signIn')}</button></div>{register && <Field t={t} label={t('name')} value={values.name || ''} set={v => update('name', v)} required />}{register && role === 'BUYER' && <><Field t={t} label={t('email')} value={values.email || ''} set={v => update('email', v)} type="email" /><Field t={t} label={t('businessName')} value={values.businessName || ''} set={v => update('businessName', v)} required /><Select t={t} label={t('buyerType')} value={values.buyerType || ''} set={v => update('buyerType', v)} options={['wholesaler', 'retailer', 'processor', 'other']} /></>}{<Field t={t} label={t('mobile')} value={values.mobile || ''} set={v => update('mobile', v)} type="tel" required />}{register && <><Field t={t} label={t('state')} value={values.state || ''} set={v => update('state', v)} required /><Field t={t} label={t('district')} value={values.district || ''} set={v => update('district', v)} required /><Field t={t} label={role === 'BUYER' ? t('location') : t('village')} value={values[role === 'BUYER' ? 'location' : 'village'] || ''} set={v => update(role === 'BUYER' ? 'location' : 'village', v)} required /></>}{role === 'FARMER' && register && <><Field t={t} label={t('farmSize')} value={values.farmSize || ''} set={v => update('farmSize', v)} type="number" required /><Field t={t} label={t('crops')} value={values.crops || ''} set={v => update('crops', v)} required /></>}{<Field t={t} label={t('password')} value={values.password || ''} set={v => update('password', v)} type="password" required />}{error && <p className="error-message">{error}</p>}<p className="notice">{t('demoNote')}</p><button className="primary-button full-width">{register ? t('continue') : t('signIn')} <ArrowRight size={18} /></button></form></main>
 }
 
-function FarmerHome({ t, token, go, select }: Props) { const [listings, setListings] = useState<Listing[]>([]); useEffect(() => { api.myListings(token).then(x => setListings(x.listings)) }, [token]); return <main className="dashboard-page"><Header t={t} eyebrow={t('farmerProfile')} title={t('marketplace')} action={t('createListing')} onAction={() => go('listing')} /><Nav t={t} go={go} farmer /><h2>{t('myListings')}</h2>{!listings.length ? <Empty title={t('noListings')} text={t('noListingsHelp')} /> : <div className="listing-grid">{listings.map(item => <Card key={item.id} t={t} listing={item} open={() => select(item)} remove={() => api.deleteListing(item.id, token).then(() => setListings(listings.filter(x => x.id !== item.id)))} />)}</div>}</main> }
+function FarmerHome({ t, token, go, select }: Props) { const [listings, setListings] = useState<Listing[]>([]); useEffect(() => { api.myListings(token).then(x => setListings(x.listings)) }, [token]); return <main className="dashboard-page"><Header t={t} eyebrow={t('farmerProfile')} title={t('marketplace')} action={t('createListing')} onAction={() => go('listing')} /><Nav t={t} go={go} farmer /><div className="farmer-tools"><button className="market-tool-button" onClick={() => go('crop-assistance')}><ImagePlus size={18} /><span><strong>{t('cropAssistance')}</strong><small>{t('cropAssistanceHelp')}</small></span><ArrowRight size={16} /></button><button className="market-tool-button" onClick={() => go('market-prices')}><Search size={18} /><span><strong>{t('marketPrices')}</strong><small>{t('marketPricesHelp')}</small></span><ArrowRight size={16} /></button><button className="market-tool-button" onClick={() => go('storage')}><Package size={18} /><span><strong>{t('coldStorage')}</strong><small>{t('coldStorageHelp')}</small></span><ArrowRight size={16} /></button><button className="market-tool-button" onClick={() => go('transport')}><Truck size={18} /><span><strong>{t('transport')}</strong><small>{t('transportHelp')}</small></span><ArrowRight size={16} /></button></div><h2>{t('myListings')}</h2>{!listings.length ? <Empty title={t('noListings')} text={t('noListingsHelp')} /> : <div className="listing-grid">{listings.map(item => <Card key={item.id} t={t} listing={item} open={() => select(item)} remove={() => api.deleteListing(item.id, token).then(() => setListings(listings.filter(x => x.id !== item.id)))} />)}</div>}</main> }
 function BuyerHome({ t, go, select }: Props) { return <main className="dashboard-page"><Header t={t} eyebrow={t('buyerProfile')} title={t('marketplace')} action={t('browseProduce')} onAction={() => go('browse')} /><Nav t={t} go={go} /><Browse t={t} go={go} select={select} /></main> }
 function Header({ t, eyebrow, title, action, onAction }: { t: (key: string) => string; eyebrow: string; title: string; action: string; onAction: () => void }) { return <div className="dashboard-heading"><div><p className="eyebrow">{eyebrow}</p><h1>{title}</h1><p>{t('dashboardIntro')}</p></div><button className="primary-button" onClick={onAction}><Plus size={17} /> {action}</button></div> }
 function Nav({ t, go, farmer = false }: { t: (key: string) => string; go: (page: Page) => void; farmer?: boolean }) { return <div className="market-nav"><button onClick={() => go(farmer ? 'farmer' : 'browse')}>{farmer ? t('myListings') : t('browseProduce')}</button><button onClick={() => go(farmer ? 'offers' : 'offers')}>{farmer ? t('offers') : t('myOffers')}</button><button onClick={() => go('orders')}>{t('orders')}</button></div> }

@@ -21,6 +21,9 @@ model User {
   offers        Offer[]
   farmerOrders  Order[]        @relation("farmerOrders")
   buyerOrders   Order[]        @relation("buyerOrders")
+  storageRequests StorageRequest[]
+  transportRequests TransportRequest[]
+  diagnoses       CropDiagnosis[]
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
 }
@@ -64,6 +67,8 @@ model ProduceListing {
   farmer           User     @relation(fields: [farmerId], references: [id], onDelete: Cascade)
   offers           Offer[]
   orders           Order[]
+  storageRequests  StorageRequest[]
+  transportRequests TransportRequest[]
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
   @@index([status, cropName])
@@ -100,8 +105,157 @@ model Order {
   listing      ProduceListing @relation(fields: [listingId], references: [id], onDelete: Restrict)
   farmer       User           @relation("farmerOrders", fields: [farmerId], references: [id], onDelete: Restrict)
   buyer        User           @relation("buyerOrders", fields: [buyerId], references: [id], onDelete: Restrict)
+  storageRequests  StorageRequest[]
+  transportRequests TransportRequest[]
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
   @@index([farmerId, status])
   @@index([buyerId, status])
+}
+
+model Market {
+  id        String              @id @default(cuid())
+  name      String
+  state     String
+  district  String
+  prices    MarketPriceRecord[]
+  createdAt DateTime            @default(now())
+  updatedAt DateTime            @updatedAt
+  @@unique([name, state, district])
+  @@index([state, district])
+}
+
+model MarketPriceRecord {
+  id             String   @id @default(cuid())
+  marketId       String
+  cropName       String
+  category       String?
+  minPrice       Float?
+  maxPrice       Float?
+  modalPrice     Float?
+  unit           String
+  grade          String?
+  priceDate      DateTime
+  source         String
+  sourceRecordId String?
+  dataStatus     String   @default("SAMPLE")
+  retrievedAt    DateTime @default(now())
+  market         Market   @relation(fields: [marketId], references: [id], onDelete: Cascade)
+  @@index([cropName, priceDate])
+  @@index([marketId, priceDate])
+  @@unique([marketId, cropName, priceDate, source])
+}
+
+model ColdStorageFacility {
+  id                 String           @id @default(cuid())
+  name               String
+  state              String
+  district           String
+  location           String
+  address            String?
+  latitude           Float?
+  longitude          Float?
+  supportedCrops     String
+  capacity           Float?
+  capacityUnit       String?
+  availabilityStatus String?
+  rentalCharge       Float?
+  rentalUnit         String?
+  contact            String?
+  source             String
+  dataStatus         String           @default("SAMPLE")
+  retrievedAt        DateTime         @default(now())
+  storageRequests    StorageRequest[]
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+  @@index([state, district])
+  @@index([name])
+}
+
+model StorageRequest {
+  id             String              @id @default(cuid())
+  farmerId       String
+  facilityId     String
+  listingId      String?
+  orderId        String?
+  cropName       String
+  quantity       Float
+  unit           String
+  startDate      DateTime
+  endDate        DateTime
+  notes          String?
+  status         String              @default("PENDING")
+  farmer         User                @relation(fields: [farmerId], references: [id], onDelete: Cascade)
+  facility       ColdStorageFacility @relation(fields: [facilityId], references: [id], onDelete: Restrict)
+  listing        ProduceListing?     @relation(fields: [listingId], references: [id], onDelete: SetNull)
+  order          Order?              @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+  @@index([farmerId, status])
+  @@index([facilityId, status])
+}
+
+model TransportProvider {
+  id                 String             @id @default(cuid())
+  name               String
+  contact            String?
+  vehicleType        String
+  capacity           Float?
+  capacityUnit       String?
+  serviceAreas       String
+  estimatedCharge    Float?
+  availabilityStatus String?
+  source             String
+  dataStatus         String             @default("SAMPLE")
+  retrievedAt        DateTime           @default(now())
+  transportRequests  TransportRequest[]
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+  @@index([vehicleType])
+}
+
+model TransportRequest {
+  id                   String             @id @default(cuid())
+  farmerId             String
+  providerId           String?
+  listingId            String?
+  orderId              String?
+  cropName             String
+  quantity             Float
+  unit                 String
+  pickupLocation       String
+  destination          String
+  pickupDate           DateTime
+  vehicleRequirements  String?
+  notes                String?
+  status               String             @default("PENDING")
+  farmer               User               @relation(fields: [farmerId], references: [id], onDelete: Cascade)
+  provider             TransportProvider? @relation(fields: [providerId], references: [id], onDelete: SetNull)
+  listing              ProduceListing?    @relation(fields: [listingId], references: [id], onDelete: SetNull)
+  order                Order?             @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+  @@index([farmerId, status])
+  @@index([providerId, status])
+}
+
+model CropDiagnosis {
+  id           String   @id @default(cuid())
+  farmerId     String
+  cropName     String
+  imageKey     String
+  imageMimeType String
+  imageSize    Int
+  prediction   String?
+  confidence   Float?
+  resultStatus String   @default("PROCESSING")
+  guidanceKey  String?
+  modelName    String
+  modelVersion String
+  provider     String
+  farmer       User     @relation(fields: [farmerId], references: [id], onDelete: Cascade)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  @@index([farmerId, createdAt])
+  @@index([resultStatus])
 }
