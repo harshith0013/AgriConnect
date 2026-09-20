@@ -11,6 +11,7 @@
     "build": "tsc -b && vite build",
     "build:api": "tsc -p tsconfig.server.json",
     "lint": "oxlint",
+    "test:voice": "node --import tsx --test src/voice/voice.test.ts",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev --name init",
     "preview": "vite preview"

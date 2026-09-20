@@ -1,3 +1,5 @@
+.speak-button { min-width: 48px; min-height: 48px; border: 1px solid #b9cbbd; border-radius: 8px; background: #fff; color: #285d43; display: inline-grid; place-items: center; cursor: pointer; }
+.voice-settings { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; }
 .counter {
   font-size: 16px;
   padding: 5px 10px;

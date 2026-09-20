@@ -12,6 +12,7 @@ import path from 'node:path'
 import { ensureSamplePrices, getPrices } from './marketPrices.js'
 import { ensureLogisticsSamples } from './logistics.js'
 import { createInferenceProvider } from './cropInference.js'
+import { createVoiceProvider, type VoiceLanguage } from './voiceProvider.js'
 
 const prisma = new PrismaClient()
 const app = express()
@@ -20,6 +21,8 @@ const jwtSecret = process.env.JWT_SECRET || 'development-only-secret'
 const privateUploadDir = path.resolve(process.env.CROP_UPLOAD_DIR || 'private-uploads')
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024, files: 1 }, fileFilter: (_request, file, callback) => callback(null, ['image/jpeg', 'image/png', 'image/webp'].includes(file.mimetype)) })
 const inferenceProvider = createInferenceProvider()
+const voiceProvider = createVoiceProvider()
+const voiceRequests = new Map<string, { started: number; count: number }>()
 
 type Role = 'FARMER' | 'BUYER'
 type AuthRequest = Request & { user?: { id: string; role: Role } }
@@ -44,9 +47,26 @@ const auth = (request: AuthRequest, response: Response, next: NextFunction) => {
   } catch { response.status(401).json({ error: 'Invalid or expired session' }) }
 }
 const role = (expected: Role) => (request: AuthRequest, response: Response, next: NextFunction) => request.user?.role === expected ? next() : response.status(403).json({ error: `${expected.toLowerCase()} access required` })
+const voiceRateLimit = (request: AuthRequest, response: Response, next: NextFunction) => {
+  const now = Date.now(); const current = voiceRequests.get(request.user!.id)
+  if (!current || now - current.started >= 60_000) voiceRequests.set(request.user!.id, { started: now, count: 1 })
+  else if (current.count >= 10) return response.status(429).json({ error: 'Voice request limit reached. Please try again later.' })
+  else current.count += 1
+  next()
+}
 const publicUser = (user: { id: string; role: string; name: string; mobile: string; email: string | null; language: string }) => ({ id: user.id, role: user.role, name: user.name, mobile: user.mobile, email: user.email, language: user.language })
 
 app.get('/api/health', (_request, response) => response.json({ ok: true, service: 'agriconnect-api' }))
+
+app.post('/api/voice/tts', auth, voiceRateLimit, asyncRoute(async (request, response) => {
+  const text = typeof request.body.text === 'string' ? request.body.text.trim() : ''
+  const language = request.body.language as VoiceLanguage
+  if (!text || text.length > 500) return response.status(400).json({ error: 'Voice text must be between 1 and 500 characters' })
+  if (!['en', 'te'].includes(language)) return response.status(400).json({ error: 'Voice language must be en or te' })
+  if (!voiceProvider) return response.status(503).json({ error: 'Voice fallback is not configured' })
+  const audio = await voiceProvider.synthesize(text, language)
+  response.type('audio/mpeg').send(audio)
+}))
 
 app.post('/api/auth/register/farmer', asyncRoute(async (request, response) => {
   const { name, mobile, password, language = 'en', state, district, village, farmSize, crops } = request.body

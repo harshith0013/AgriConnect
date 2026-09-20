@@ -5,6 +5,7 @@ import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vite.dev/config/
 export default defineConfig({
+  server: { proxy: { '/api': 'http://localhost:4000' } },
   plugins: [react(), tailwindcss(), VitePWA({
     registerType: 'autoUpdate',
     includeAssets: ['favicon.svg'],
@@ -20,7 +21,7 @@ export default defineConfig({
     },
     workbox: {
       navigateFallback: '/index.html',
-      globPatterns: ['**/*.{js,css,html,svg,png,ico}'],
+      globPatterns: ['**/*.{js,css,html,svg,png,ico,mp3}'],
     },
   })],
 })

@@ -40,6 +40,11 @@ export const api = {
   cancelTransportRequest: (id: string, token: string) => request<{ request: TransportRequest }>(`/transport-requests/${id}/cancel`, { method: 'PATCH' }, token),
   submitDiagnosis: async (cropName: string, image: File, token: string, language: string) => { const body = new FormData(); body.append('cropName', cropName); body.append('language', language); body.append('image', image); const response = await fetch(`${API_URL}/crop-diagnoses`, { method: 'POST', body, headers: { Authorization: `Bearer ${token}` } }); if (!response.ok) { const data = await response.json().catch(() => ({})); throw new Error(data.error || 'Diagnosis request failed') } return response.json() as Promise<{ diagnosis: Diagnosis; analysis: { explanation: string; observedSymptoms: string[]; recommendedNextSteps: string[]; whenToSeekExpertHelp: string; language: string }; demo: boolean }> },
   diagnosisHistory: (token: string) => request<{ diagnoses: Diagnosis[]; demo: boolean }>('/crop-diagnoses/mine', {}, token),
+  voiceTts: async (text: string, language: 'en' | 'te', token: string) => {
+    const response = await fetch(`${API_URL}/voice/tts`, { method: 'POST', body: JSON.stringify({ text, language }), headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` } })
+    if (!response.ok) { const data = await response.json().catch(() => ({})); throw new Error(data.error || 'Voice service unavailable') }
+    return response.blob()
+  },
 }
 export type Listing = { id: string; cropName: string; category: string; quantity: number; unit: string; quality?: string | null; expectedPrice: number; availabilityDate: string; pickupLocation: string; description?: string | null; status: string; farmer?: { name: string; farmerProfile?: { state: string; district: string; village: string } } }
 export type Offer = { id: string; offeredPrice: number; requestedQuantity: number; message?: string | null; status: string; buyer?: { name: string; buyerProfile?: { businessName: string } }; listing?: Listing }

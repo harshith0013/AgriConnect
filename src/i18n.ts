@@ -67,6 +67,7 @@ export const translations = {
     offline: 'You are offline. Your saved app shell is still available.',
     online: 'Back online',
     footer: 'Phase 1 foundation • Development preview',
+    readScreensAloud: 'Read screens aloud', speak: 'Read aloud', voiceNotice: 'A Telugu voice is not installed. Audio fallback will be used when available.', microphonePermission: 'AgriConnect needs microphone permission only for crop, number, yes or no, and navigation commands.', voiceUnsupported: 'Voice input is not supported on this device.', voicePermission: 'Microphone permission was denied.', voiceNoSpeech: 'No speech was heard. Please try again.', voiceNetwork: 'Voice input needs a network connection.', yes: 'Yes', no: 'No', understood: 'I understood', confirmAction: 'Please confirm this action.', offlineVoiceInput: 'Voice input is disabled while offline.',
   },
   te: {
     brand: 'అగ్రికనెక్ట్',
@@ -134,6 +135,7 @@ export const translations = {
     offline: 'మీరు ఆఫ్‌లైన్‌లో ఉన్నారు. సేవ్ చేసిన యాప్ అందుబాటులో ఉంది.',
     online: 'మళ్లీ ఆన్‌లైన్‌లో ఉన్నారు',
     footer: 'ఫేజ్ 1 పునాది • అభివృద్ధి ప్రివ్యూ',
+    readScreensAloud: 'స్క్రీన్‌లను గట్టిగా చదవండి', speak: 'గట్టిగా చదవండి', voiceNotice: 'ఈ పరికరంలో తెలుగు వాయిస్ లేదు. అందుబాటులో ఉంటే ఆడియో ప్రత్యామ్నాయం ఉపయోగించబడుతుంది.', microphonePermission: 'పంట, సంఖ్య, అవును లేదా కాదు, మరియు నావిగేషన్ ఆదేశాల కోసం మాత్రమే అగ్రికనెక్ట్‌కు మైక్రోఫోన్ అనుమతి అవసరం.', voiceUnsupported: 'ఈ పరికరంలో వాయిస్ ఇన్‌పుట్‌కు మద్దతు లేదు.', voicePermission: 'మైక్రోఫోన్ అనుమతి నిరాకరించబడింది.', voiceNoSpeech: 'మాట వినిపించలేదు. మళ్లీ ప్రయత్నించండి.', voiceNetwork: 'వాయిస్ ఇన్‌పుట్‌కు నెట్‌వర్క్ అవసరం.', yes: 'అవును', no: 'కాదు', understood: 'నేను అర్థం చేసుకున్నాను', confirmAction: 'ఈ చర్యను నిర్ధారించండి.', offlineVoiceInput: 'ఆఫ్‌లైన్‌లో వాయిస్ ఇన్‌పుట్ నిలిపివేయబడింది.',
   },
 } as const
 
